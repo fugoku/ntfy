@@ -5,13 +5,37 @@ services:
     container_name: ntfy
     command:
       - serve
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.ntfy.rule=Host(`ntfy.fugoku.com`)
+      - traefik.http.routers.ntfy.tls=true
+      - traefik.http.routers.ntfy.entrypoints=web,websecure
+      - traefik.http.routers.ntfy.tls.certresolver=letsencrypt
+      - traefik.http.middlewares.ntfy.headers.SSLRedirect=true
+      - traefik.http.middlewares.ntfy.headers.STSSeconds=315360000
+      - traefik.http.middlewares.ntfy.headers.browserXSSFilter=true
+      - traefik.http.middlewares.ntfy.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.ntfy.headers.forceSTSHeader=true
+      - traefik.http.middlewares.ntfy.headers.SSLHost=ntfy.fugoku.com
+      - traefik.http.middlewares.ntfy.headers.STSIncludeSubdomains=true
+      - traefik.http.middlewares.ntfy.headers.STSPreload=true
+      - traefik.http.routers.ntfy.middlewares=ntfy@docker
     environment:
       - TZ=UTC    # optional: Change to your desired timezone
-    user: UID:GID # optional: Set custom user/group or uid/gid
+    user: root
+    networks:
+      - coolify-infra
+      - deploy
     volumes:
       - /var/cache/ntfy:/var/cache/ntfy
       - /etc/ntfy:/etc/ntfy
-    ports:
-      - 80:80
+    # ports:
+    #   - 80:80
     restart: unless-stopped
+
+networks:
+  coolify-infra:
+    external: true
+  deploy:
+    external: true
 
